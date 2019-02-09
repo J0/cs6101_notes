@@ -26,28 +26,45 @@
 
 \maketitle
 
-
 \section{Introduction}
 Copy this template and use it to write up the lecture notes. Also copy over
 bibliography.bib and add any references you use to that file.
+
 \section{Policy for the course}
-The class will meet every week around 3pm to 5pm to review the material presented. Prof Min and Prof Lee Wee Sun will be giving lectures for week 3
-and week 4. For subsequent weeks, participants will take turns assuming the role of questioner/lecturer. 
-
-
+The class will meet every week around 3pm to 5pm to review the
+material presented. Prof Min and Prof Lee Wee Sun will be giving
+lectures for the first two weeks (Week 3, this week) and Week 4. For
+subsequent weeks, participants will take turns assuming the role of
+scribe/lecturer.
 
 \section{Supervised Learning and Imitation Learning}
-In Supervised learning, we train a model to match the input to other labels, perhaps say, using mean square error or some other model to check for accuracy or loss. In reinforcement learning, we learn and reiterate using feedback. Given a state, we need to decide what action we wish to take. <Insert Image>. For greater detail, refer to https://hackernoon.com/reinforcement-learning-and-supervised-learning-a-brief-comparison-1b6d68c45ffa. The goal of reinforcement learning is more general than supervised learning and we can then couple this in a sequential method to build up a policy
+
+In Supervised learning, we train a model to match the input to other
+labels, perhaps say, using mean square error or some other model to
+check for accuracy or loss. In reinforcement learning, we learn and
+reiterate using feedback. Given a state, we need to decide what action
+we wish to take. <Insert Image>. For greater detail, refer to
+https://hackernoon.com/reinforcement-learning-and-supervised-learning-a-brief-comparison-1b6d68c45ffa. The
+goal of reinforcement learning is more general than supervised
+learning and we can then couple this in a sequential method to build
+up a policy
 
 \section{Definitions}
+
 \subsection{Policy}
 Given a state, what action are we going to take?
 
 \subsection{State}
-Action doesn't directly affect the policy. State is what is actually happening in the worl.  Based on what we can see from sensory input, we can take an action.  Tiger and the car(Observation wouldn't let us see it). we can't observe the tiger but our previous state allows us to know
+Action doesn't directly affect the policy. State is what is actually
+happening in the worl.  Based on what we can see from sensory input,
+we can take an action.  Tiger and the car(Observation wouldn't let us
+see it). we can't observe the tiger but our previous state allows us
+to know
 
 \subsection{Markov property}
-If I know the current state of the system I know whawt's the probability of getting to the next state. Particular state + what's the reward for taking an action.
+If I know the current state of the system I know whawt's the
+probability of getting to the next state. Particular state + what's
+the reward for taking an action.
 
 \section{Finite horizon vs infinite Horizon}
 Finite horizon is not stationary -- it diverges.
