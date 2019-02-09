@@ -4,9 +4,7 @@ This repository is adapted from [StanfordVL's CS131 repository](https://github.c
 
 ## Instructions for creating class notes
 
-### Signup to write the notes for a particular lecture.
-
-[Here is the link](https://docs.google.com/spreadsheets/). Try and choose lectures that have no students signed up yet.
+As a scribe for the course, you have been assigned to the scribe role by Min and Wee Sun for a specific lecture as indicated in the Google Sheet that is pinned to the [Slack channel](https://cs6101.slack.com).  The below instructions then apply when this duty is rotated to you.
 
 ### Overall workflow
 1. Fork this repository by clicking the "Fork" button on the top right of [this
@@ -46,13 +44,14 @@ displayed. Read format.pdf to understand how we expect the class notes to be
 formatted.
 
 ### Writing class notes for a given lecture
-1. Create a folder called `LectureXX` where `XX` is `01` for the first lecture
-or `18` for the eighteenth lecture.
+1. Create a folder called `wXX` where `XX` is `03` for the first lecture (since the course starts on Week 3
+or `13` for the final, thirteenth lecture.  For the recess week, the naming should be 'w-recess'.  These names 
+should be congruent to those in the Slack preparation channels.  
 
 2. Copy over template.tex and bibliography.bib to your folder.
 ```
-cp template/template.tex lectureXX/lectureXX.tex
-cp template/bibliography.bib lectureXX/bibliography.bib
+cp template/template.tex wXX/wXX.tex
+cp template/bibliography.bib wXX/bibliography.bib
 ```
 
 3. Write the lecture notes. Make sure to include pictures, references and
@@ -61,10 +60,10 @@ images.
 
 4. Compile your lecture template to make sure that it formats correctly.
 ```
-cd lectureXX
-pdflatex lectureXX.tex
-bibtex lectureXX
-pdflatex lectureXX.tex
+cd wXX
+pdflatex wXX.tex
+bibtex wXX
+pdflatex wXX.tex
 ```
 
 5. Submit a pull request to have your lecture notes merged.
