@@ -11,15 +11,15 @@
 \usepackage{microtype}      % microtypography
 \usepackage{verbatim}
 \usepackage{graphicx}       % for figures
+\usepackage{amsmath}        % equation environments and so on
+\usepackage{framed,color}
+\definecolor{shadecolor}{rgb}{0.9,0.9,0.9}
 
-\title{Lecture \#X: NAME OF LECTURE}
+\title{CS 6101 Week \#4 Notes: Actor-Critic Introduction, Value Functions and Q-Learning}
 
 \author{
-  Student1 name, student2 name, etc. \\
-  Department of Computer Science\\
-  National University of Singapore\\
-  Singapore, S117417 \\
-  \texttt{\{STUDENT1, STUDENT2, etc.\}@u.nus.edu} \\
+  Note taking: Alexandre Gravier, Joel Lee\\
+  \LaTeX{} transcription: Alexandre Gravier <\texttt{al.gravier@gmail.com}> \\
 }
 
 \begin{document}
@@ -27,9 +27,81 @@
 \maketitle
 
 
-\section{Introduction}
-Copy this template and use it to write up the lecture notes. Also copy over
-bibliography.bib and add any references you use to that file.
+
+\section{Recap about policy gradients}
+
+
+We define $J(\theta) \doteq E_{\tau\sim p_\theta(\tau)}\left[\sum_t r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right]$ so that the objective of RL can be defined as an optimization exercise consting in finding an assignment of policy parameters $\theta^\star = \arg\max_\theta E_{\tau\sim p_\theta(\tau)}J(\theta)$.
+
+$J(\theta)$ is not usually optimizable as such due to f.e. dimensionality issues, so we
+use a sample-based unbiased estimate: $J(\theta) \approx \frac{1}{N} \sum_i \sum_t r\left(\mathbf{s}_{i,t},\mathbf{a}_{i,t}\right)$. Taking the gradient of $J(\theta)$ along $\theta$ allows maximizing the expected reward as per the policy.
+
+\subsection{Policy differentiation with a ``convenient identity''}
+
+Let $r(\tau) \doteq \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)$ the total reward of a trajectory $\tau$.
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+      &= \nabla_\theta E_{\tau\sim p_\theta(\tau)}[r(\tau)] & \\
+      &= \nabla_\theta\int\pi_\theta(\tau) r(\tau)d\tau &\text{by definition of expectation}\\ 
+      &= \int\nabla_\theta\pi_\theta(\tau) r(\tau)d\tau &\text{by linearity} \label{eq:gradjintegral}
+  \end{align}
+\end{subequations}
+
+At this point, the expression $\int\nabla_\theta\pi_\theta(\tau) r(\tau)d\tau$ seems rather intractable. This is where the following ``convenient identity'' can be used to derive a tractable expression of $\nabla_\theta J(\theta)$.
+
+\begin{shaded}
+  \textbf{A convenient identiy}
+  \begin{equation} \label{eq:convenientidentity}
+    \pi_\theta (\tau)\nabla_\theta \log \pi_\theta (\tau) = \pi_\theta (\tau) \frac{\nabla_\theta \pi_\theta (\tau)}{\pi_\theta (\tau)} = \nabla_\theta \pi_\theta (\tau)
+  \end{equation}
+\end{shaded}
+
+Furthermore, we can expand the definition of $\pi_\theta\left(\tau\right)$ and take its logarithm:
+
+\begin{subequations}
+  \begin{align}
+    \pi_\theta\left(\tau\right)
+      &= p\left(\mathbf{s}_1\right)\prod_{t=1}^T\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\\
+    \Leftrightarrow \log\pi_\theta\left(\tau\right)
+      &= \log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right) \label{eq:logpitraj}
+  \end{align}
+\end{subequations}
+
+
+
+Using \eqref{eq:convenientidentity} and \eqref{eq:logpitraj} in \eqref{eq:gradjintegral}, the gradient of the objective becomes:
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+      &= \int\pi_\theta(\tau)\nabla_\theta\log\pi_\theta(\tau) r(\tau)d\tau \qquad\text{using \eqref{eq:convenientidentity}}\\
+      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta\log\pi_\theta(\tau) r(\tau)\right]\qquad\text{by definition of expectation}\\
+      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right] r(\tau)\right]
+  \end{align}
+\end{subequations}
+
+We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right]$ of the gradient w.r.t. $\theta$, the terms $\log p\left(\mathbf{s}_1\right)$ and $\log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)$ are independent of $\theta$, so we are left with:
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta \left[\sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right] r(\tau)\right]\\
+      &= E_{\tau\sim p_\theta(\tau)}\left[ \left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) r(\tau)\right] &\text{by linearity}\\
+      &= E_{\tau\sim p_\theta(\tau)}\left[ \left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right] &\text{by definition of }r(\tau) \label{eq:gradjlog}
+  \end{align}
+\end{subequations}
+
+In Equation \eqref{eq:gradjlog}, the gradient of $J$ is now a computable function of $\pi_\theta$ only.
+
+\subsection{Variance reduction with a ``convenient identity''}
+
+The ``\textbf{rewards to go}'' trick computes the expected future rewards 
+based on from the current time $t$ to reduce variance in $J$. It comes from the 
+observation that at time $t$, all past rewards cannot be affected by policy decisions.
+
+Rewards to go - 
 
 % References
 \small
