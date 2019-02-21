@@ -26,7 +26,7 @@
 
 \maketitle
 
-
+\tableofcontents
 
 \section{Recap about policy gradients}
 
@@ -69,8 +69,6 @@ Furthermore, we can expand the definition of $\pi_\theta\left(\tau\right)$ and t
   \end{align}
 \end{subequations}
 
-
-
 Using \eqref{eq:convenientidentity} and \eqref{eq:logpitraj} in \eqref{eq:gradjintegral}, the gradient of the objective becomes:
 
 \begin{subequations}
@@ -78,11 +76,11 @@ Using \eqref{eq:convenientidentity} and \eqref{eq:logpitraj} in \eqref{eq:gradji
     \nabla_\theta J(\theta) 
       &= \int\pi_\theta(\tau)\nabla_\theta\log\pi_\theta(\tau) r(\tau)d\tau \qquad\text{using \eqref{eq:convenientidentity}}\\
       &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta\log\pi_\theta(\tau) r(\tau)\right]\qquad\text{by definition of expectation}\\
-      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right] r(\tau)\right]
+      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right] r(\tau)\right] \label{eq:gradjlogsum}
   \end{align}
 \end{subequations}
 
-We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right]$ of the gradient w.r.t. $\theta$, the terms $\log p\left(\mathbf{s}_1\right)$ and $\log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)$ are independent of $\theta$, so we are left with:
+We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right]$ of the gradient w.r.t. $\theta$ in \eqref{eq:gradjlogsum}, the terms $\log p\left(\mathbf{s}_1\right)$ and $\log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)$ are independent of $\theta$, so we are left with:
 
 \begin{subequations}
   \begin{align}
@@ -95,7 +93,27 @@ We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\rig
 
 In Equation \eqref{eq:gradjlog}, the gradient of $J$ is now a computable function of $\pi_\theta$ only.
 
-\subsection{Variance reduction with a ``convenient identity''}
+We earlier mentioned the sample estimate of $J(\theta) \approx \frac{1}{N} \sum_i \sum_t r\left(\mathbf{s}_{i,t},\mathbf{a}_{i,t}\right)$; similarly $\nabla_\theta J(\theta)$ is approximated with samples, leading us to the algorithm:
+
+\begin{shaded}
+  \begin{equation}
+    \textbf{\textsc{reinforce} algorithm:}\left\{\begin{array}{l}
+      \text{sample } \left\{\tau^i\right\} \text{ from } \pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\\[2mm]
+      \nabla_\theta J(\theta) 
+        \approx \frac{1}{N} \sum_{i=1}^N\left(\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right) \label{eq:gradjapprox}\\[3mm]
+        \theta \leftarrow \theta + \alpha\nabla_\theta J(\theta)
+    \end{array}
+    \right.
+  \end{equation}
+\end{shaded}
+
+In \eqref{eq:gradjapprox}, there is no use of the Markov property, so the algorithm can be used as such on POMDPs.
+
+\subsection{The bad news}
+
+
+
+\subsection{Variance reduction with ``rewards to go''}
 
 The ``\textbf{rewards to go}'' trick computes the expected future rewards 
 based on from the current time $t$ to reduce variance in $J$. It comes from the 
