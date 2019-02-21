@@ -2,6 +2,13 @@
 *.out
 *.bbl
 *.bgl
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.tex.bak
+*.aux
+*.blg
+
 # -*- mode: gitignore; -*-
 *~
 \#*\#
