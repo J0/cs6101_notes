@@ -111,15 +111,54 @@ In \eqref{eq:gradjapprox}, there is no use of the Markov property, so the algori
 
 \subsection{The bad news}
 
+We introduce some simplifying notation:
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+        &\approx \frac{1}{N} \sum_{i=1}^N\left(\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right)\\
+        &\approx \frac{1}{N} \sum_{i=1}^N\nabla_\theta\log\pi_\theta\left(\tau\right)r\left(\tau\right)
+  \end{align}
+\end{subequations}
+
+The big problem with vanilla \textsc{reinforce} lies in variance: if you were to repeatedly collect a small finite number $N$ of samples, estimating each time the gradient based on these samples, you would observe that these estimates of the gradient vary a lot.
+
+That means that the gradient descent step will likely take us away from the goal, and convergence will be very slow, or may not happen.
+
+Additionally, given two sets of sample trajectories differing only by a constant factor, but dofferently centred around a total reward of 0, the basic policy gradient algorithm in \eqref{eq:gradjapprox} may change the parameters very differently. 
+
+%(Note (agravier): I think that this trajectories example in the course is more than a ``variance issue''. This is a fundamental difference in the understanding of the meaning of reward, the information carried by the samples and the assumptions of the algorithm about the unsaid properties of the problem. More research needed here.)
+
+There are two tricks that help with the large varaiance of the samples, b oth of which should always be used because they have no drawbacks.
+
+\subsection{Variance reduction with causality: the ``rewards to go'' trick}
+
+In \eqref{eq:gradjapprox}, the gradient approximation can be improved by making use of causality: the policy at time $t'$ cannot affect the reward at time $t$ when $t < t'$.
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+        &\approx \frac{1}{N} \sum_{i=1}^N\left(\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right)\\
+        &\approx \frac{1}{N} \sum_{i=1}^N\Bigg(\sum_{t=1}^T\Bigg(\underbrace{\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)}_{\small\llap{\textit{gradient}}\rlap{\textit{ at }t}} \underbrace{\sum_{t'=1}^T r\left(\mathbf{s}_{t'},\mathbf{a}_{t'}\right)}_{\small\llap{\textit{this total }}\rlap{\textit{reward should be computed from time }t}}\Bigg)\Bigg) &\text{by distributivity}\\
+        &\approx \frac{1}{N} \sum_{i=1}^N\Bigg(\sum_{t=1}^T\Bigg(\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right) \underbrace{\sum_{t'=t}^T r\left(\mathbf{s}_{t'},\mathbf{a}_{t'}\right)}_{\textit{\small reward to go}}\Bigg)\Bigg) &\text{by causality}
+  \end{align}
+\end{subequations}
+
+Intuitively, the ``\textbf{rewards to go}'' trick comes from the observation that at time $t$, all past rewards cannot be affected by policy decisions.
+
+We define the ``reward to go'' function $\hat{Q}: \left[\!\left[1,N\right]\!\right] \times \left[\!\left[1,T\right]\!\right] \mapsto \mathbb{R}$ as:
+
+\begin{equation}
+  \hat{Q}_{i,t} \doteq \sum_{t'=t}^T r\left(\mathbf{s}_{t'},\mathbf{a}_{t'}\right)
+\end{equation}
+
+Therefore, the gradient of the objective function approximation with rewards to go is:
+
+\begin{equation}
+  \nabla_\theta J(\theta) \approx \frac{1}{N} \sum_{i=1}^N\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right) \hat{Q}_{i,t}
+\end{equation}
 
 
-\subsection{Variance reduction with ``rewards to go''}
-
-The ``\textbf{rewards to go}'' trick computes the expected future rewards 
-based on from the current time $t$ to reduce variance in $J$. It comes from the 
-observation that at time $t$, all past rewards cannot be affected by policy decisions.
-
-Rewards to go - 
 
 % References
 \small
