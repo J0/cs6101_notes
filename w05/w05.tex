@@ -20,7 +20,7 @@
 
 \author{
   Chenglei Si, Goh Yong Liang \\
-  sichenglei1125@gmail.com \\
+  sichenglei1125@gmail.com, gyl@u.nus.edu \\
 }
 
 \begin{document}
@@ -135,7 +135,6 @@ State space: S in \{0, 1\}$^n$
 
 Each episode is a uniformly sampled initial state, and target state, and the reward is -1 if not in the target state.
 
-
 \subsection{Problem 3: Overestimation in Q-learning}
 For random variables $X_1, X_2$:
 $E[max(X_1, X_2)] \geq \max(E[X_1], E[X_2])$.
@@ -224,8 +223,21 @@ Huber loss is robust against outlier compared to squared loss
 
 
 
+
 % References
 \small
 \bibliographystyle{plain}
 \bibliography{bibliography}
+On Improving Deep Q-Learning: DDQN, Prioritized Experience Replay, Fixed Q-targets:
+
+https://medium.freecodecamp.org/improvements-in-deep-q-learning-dueling-double-dqn-prioritized-experience-replay-and-fixed-58b130cc5682
+
+
+Prioritized experience replay: 
+
+https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf 
+
+https://arxiv.org/pdf/1511.05952.pdf 
+
+https://becominghuman.ai/learning-from-mistakes-with-hindsight-experience-replay-547fce2b3305
 \end{document}
