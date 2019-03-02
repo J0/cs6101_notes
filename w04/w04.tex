@@ -11,7 +11,7 @@
 \usepackage{microtype}      % microtypography
 \usepackage{verbatim}
 \usepackage{graphicx}       % for figures
-\usepackage{amsmath}        % equation environments and so on
+\usepackage{amsmath,amsthm} % equation environments and so on
 \usepackage{framed,color}
 \definecolor{shadecolor}{rgb}{0.9,0.9,0.9}
 
@@ -26,12 +26,12 @@
 
 \maketitle
 
-
+\tableofcontents
 
 \section{Recap about policy gradients}
 
 
-We define $J(\theta) \doteq E_{\tau\sim p_\theta(\tau)}\left[\sum_t r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right]$ so that the objective of RL can be defined as an optimization exercise consting in finding an assignment of policy parameters $\theta^\star = \arg\max_\theta E_{\tau\sim p_\theta(\tau)}J(\theta)$.
+We define $J(\theta) \doteq E_{\tau\sim p_\theta(\tau)}\left[\sum_t r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right]$ so that the objective of RL can be defined as an optimization exercise consisting in finding an assignment of policy parameters $\theta^\star = \arg\max_\theta E_{\tau\sim p_\theta(\tau)}J(\theta)$.
 
 $J(\theta)$ is not usually optimizable as such due to f.e. dimensionality issues, so we
 use a sample-based unbiased estimate: $J(\theta) \approx \frac{1}{N} \sum_i \sum_t r\left(\mathbf{s}_{i,t},\mathbf{a}_{i,t}\right)$. Taking the gradient of $J(\theta)$ along $\theta$ allows maximizing the expected reward as per the policy.
@@ -44,8 +44,8 @@ Let $r(\tau) \doteq \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)$ the to
   \begin{align}
     \nabla_\theta J(\theta) 
       &= \nabla_\theta E_{\tau\sim p_\theta(\tau)}[r(\tau)] & \\
-      &= \nabla_\theta\int\pi_\theta(\tau) r(\tau)d\tau &\text{by definition of expectation}\\ 
-      &= \int\nabla_\theta\pi_\theta(\tau) r(\tau)d\tau &\text{by linearity} \label{eq:gradjintegral}
+      &= \nabla_\theta\int\pi_\theta(\tau) r(\tau)\ d\tau &\text{by definition of expectation}\\ 
+      &= \int\nabla_\theta\pi_\theta(\tau) r(\tau)\ d\tau &\text{by linearity} \label{eq:gradjintegral}
   \end{align}
 \end{subequations}
 
@@ -69,8 +69,6 @@ Furthermore, we can expand the definition of $\pi_\theta\left(\tau\right)$ and t
   \end{align}
 \end{subequations}
 
-
-
 Using \eqref{eq:convenientidentity} and \eqref{eq:logpitraj} in \eqref{eq:gradjintegral}, the gradient of the objective becomes:
 
 \begin{subequations}
@@ -78,11 +76,11 @@ Using \eqref{eq:convenientidentity} and \eqref{eq:logpitraj} in \eqref{eq:gradji
     \nabla_\theta J(\theta) 
       &= \int\pi_\theta(\tau)\nabla_\theta\log\pi_\theta(\tau) r(\tau)d\tau \qquad\text{using \eqref{eq:convenientidentity}}\\
       &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta\log\pi_\theta(\tau) r(\tau)\right]\qquad\text{by definition of expectation}\\
-      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right] r(\tau)\right]
+      &= E_{\tau\sim p_\theta(\tau)}\left[\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right] r(\tau)\right] \label{eq:gradjlogsum}
   \end{align}
 \end{subequations}
 
-We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right]$ of the gradient w.r.t. $\theta$, the terms $\log p\left(\mathbf{s}_1\right)$ and $\log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)$ are independent of $\theta$, so we are left with:
+We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\right) + \sum_{t=1}^T\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)+ \log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)\right]$ of the gradient w.r.t. $\theta$ in \eqref{eq:gradjlogsum}, the terms $\log p\left(\mathbf{s}_1\right)$ and $\log p\left(\mathbf{s}_{t+1} \mid \mathbf{s}_t ,\mathbf{a}_t\right)$ are independent of $\theta$, so we are left with:
 
 \begin{subequations}
   \begin{align}
@@ -95,13 +93,162 @@ We note that in the expression $\nabla_\theta \left[\log p\left(\mathbf{s}_1\rig
 
 In Equation \eqref{eq:gradjlog}, the gradient of $J$ is now a computable function of $\pi_\theta$ only.
 
-\subsection{Variance reduction with a ``convenient identity''}
+We earlier mentioned the sample estimate of $J(\theta) \approx \frac{1}{N} \sum_i \sum_t r\left(\mathbf{s}_{i,t},\mathbf{a}_{i,t}\right)$; similarly $\nabla_\theta J(\theta)$ is approximated with samples, leading us to the algorithm:
 
-The ``\textbf{rewards to go}'' trick computes the expected future rewards 
-based on from the current time $t$ to reduce variance in $J$. It comes from the 
-observation that at time $t$, all past rewards cannot be affected by policy decisions.
+\begin{shaded}
+  \begin{equation}
+    \textbf{\textsc{reinforce} algorithm:}\left\{\begin{array}{l}
+      \text{sample } \left\{\tau^i\right\} \text{ from } \pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\\[2mm]
+      \nabla_\theta J(\theta) 
+        \approx \frac{1}{N} \sum_{i=1}^N\left(\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right) \label{eq:gradjapprox}\\[3mm]
+        \theta \leftarrow \theta + \alpha\nabla_\theta J(\theta)
+    \end{array}
+    \right.
+  \end{equation}
+\end{shaded}
 
-Rewards to go - 
+In \eqref{eq:gradjapprox}, there is no use of the Markov property, so the algorithm can be used as such on POMDPs.
+
+\subsection{The bad news}
+
+We introduce some simplifying notation:
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+      &\approx \frac{1}{N} \sum_{i=1}^N\left(\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right)\\
+      &\approx \frac{1}{N} \sum_{i=1}^N\nabla_\theta\log\pi_\theta\left(\tau\right)r\left(\tau\right)
+  \end{align}
+\end{subequations}
+
+The big problem with vanilla \textsc{reinforce} lies in variance: if you were to repeatedly collect a small finite number $N$ of samples, estimating each time the gradient based on these samples, you would observe that these estimates of the gradient vary a lot.
+
+That means that the gradient descent step will likely take us away from the goal, and convergence will be very slow, or may not happen.
+
+Additionally, given two sets of sample trajectories differing only by a constant factor, but differently centered around a total reward of 0, the basic policy gradient algorithm in \eqref{eq:gradjapprox} may change the parameters very differently. 
+
+%(Note (agravier): I think that this trajectories example in the course is more than a ``variance issue''. This is a fundamental difference in the understanding of the meaning of reward, the information carried by the samples and the assumptions of the algorithm about the unsaid properties of the problem. More research needed here.)
+
+There are two tricks that help with the large variance of the samples, both of which should always be used because they have no drawbacks.
+
+\subsection{Variance reduction with causality: the ``rewards to go'' trick}
+
+In \eqref{eq:gradjapprox}, the gradient approximation can be improved by making use of causality: the policy at time $t'$ cannot affect the reward at time $t$ when $t < t'$.
+
+\begin{subequations}
+  \begin{align}
+    \nabla_\theta J(\theta) 
+      &\approx \frac{1}{N} \sum_{i=1}^N\left(\left(\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)\right) \sum_{t=1}^T r\left(\mathbf{s}_t,\mathbf{a}_t\right)\right)\\
+      &\approx \frac{1}{N} \sum_{i=1}^N\Bigg(\sum_{t=1}^T\Bigg(\underbrace{\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right)}_{\small\llap{\textit{gradient}}\rlap{\textit{ at }t}} \underbrace{\sum_{t'=1}^T r\left(\mathbf{s}_{t'},\mathbf{a}_{t'}\right)}_{\small\llap{\textit{this total }}\rlap{\textit{reward should be computed from time }t}}\Bigg)\Bigg) &\text{by distributivity}\\
+      &\approx \frac{1}{N} \sum_{i=1}^N\Bigg(\sum_{t=1}^T\Bigg(\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right) \underbrace{\sum_{t'=t}^T r\left(\mathbf{s}_{t'},\mathbf{a}_{t'}\right)}_{\textit{\small reward to go}}\Bigg)\Bigg) &\text{by causality}
+  \end{align}
+\end{subequations}
+
+Intuitively, the ``\textbf{rewards to go}'' trick comes from the observation that at time $t$, all past rewards cannot be affected by policy decisions.
+
+We define the ``reward to go'' function $\hat{Q}: \left[\!\left[1,N\right]\!\right] \times \left[\!\left[1,T\right]\!\right] \mapsto \mathbb{R}$ as:
+
+\begin{equation}
+  \hat{Q}_{i,t} \doteq \sum_{t'=t}^T r\left(\mathbf{s}_{t'},\mathbf{a}_{t'}\right)
+\end{equation}
+
+Therefore, the gradient of the objective function approximation with rewards to go is:
+
+\begin{equation}
+  \nabla_\theta J(\theta) \approx \frac{1}{N} \sum_{i=1}^N\sum_{t=1}^T\nabla_\theta\log\pi_\theta\left(\mathbf{a}_t\mid \mathbf{s}_t\right) \hat{Q}_{i,t}
+\end{equation}
+
+We should note that most often, in policy gradient, we search the optimal policy within a class of policy functions that is time-invariant. However, to get the optimal policy in a finite horizon problem ($T < \infty$), we may need a time-dependent policy (e.g. in the last time step, there is no more need to care about energy preservation).
+
+\subsection{Variance reduction with baselines}
+
+Ideally, policy gradients should only depend on the relative values of the trajectory samples under the policy. But in \textsc{reinforce}, policy gradients dependent on the value of the total rewards of the policy samples: given the same set of samples shifted by a constant reward, the gradient direction and norm may change drastically. This is very undesirable.
+
+The intuition behind the baseline trick is to subtract a constant ``average reward'' baseline from the trajectory rewards, so as to make trajectories that are less rewarding than average less likely, and those more rewarding more likely.
+
+\begin{align}
+    \nabla_\theta J(\theta) 
+      &\approx \frac{1}{N} \sum_{i=1}^N\nabla_\theta\log\pi_\theta\left(\tau\right)\left(r\left(\tau\right)-b\right) &\text{where }b=\frac{1}{N} \sum_{i=1}^{N} r(\tau) \label{eq:gradbaseline}
+\end{align}
+
+Regardless of the baseline $b$ used in computing the gradient, and the policy gradient defined in \eqref{eq:gradbaseline} remains an unbiased estimator of the gradient of the objective.
+
+\begin{proof}[Proof that the gradient estimator in Eq. \eqref{eq:gradbaseline} is unbiased for any $b$]
+
+  To prove that the expression in \eqref{eq:gradbaseline} is an unbiased estimator of $ \nabla_\theta J(\theta)$, we need to prove that $E\left[\nabla_\theta\log\pi_\theta\left(\tau\right)\left(r\left(\tau\right)-b\right)\right]\overset{?}{=}E\left[\nabla_\theta\log\pi_\theta\left(\tau\right)r\left(\tau\right)\right]$, which — by linearity of expectation — is equivalent to:
+
+  \begin{equation}
+    E\left[\nabla_\theta\log\pi_\theta\left(\tau\right)b\right] \overset{?}{=} 0
+  \end{equation}
+
+  We expand the left-hand side:
+
+  \begin{subequations}\label{eq:proofunbiasedgrad}
+    \begin{align}
+      E\left[\nabla_\theta\log\pi_\theta\left(\tau\right)b\right]
+        &= \int \pi_{\theta}(\tau) \nabla_{\theta} \log \pi_{\theta}(\tau) b\ d\tau &\text{by definition of expectation} \label{eq:proofunbiasedgradstart}\\
+        &= \int \nabla_{\theta}\pi_{\theta}(\tau) b\ d\tau &\text{by substitution with \eqref{eq:convenientidentity}}\\ 
+        &= b\nabla_{\theta}\int \pi_{\theta}(\tau)\ d\tau &\text{by linearity} \\
+        &= b\nabla_{\theta}\int 1 &\text{as }\pi_\theta\text{ is a probability distribution} \\
+        &= 0 \label{eq:proofunbiasedgradend}
+    \end{align}
+  \end{subequations}
+
+  Hence, any baseline $b$ may be added to Eq. \eqref{eq:gradjapprox}, and it will remain an unbiased estimator of the gradient of $J(\theta)$.
+\end{proof}
+
+Therefore, after subtracting an average reward baseline from the trajectories' reward, Eq. \eqref{eq:gradbaseline} remains an unbiased estimate of the gradient of the objective, but with a lower variance.
+
+Choosing $b=\frac{1}{N} \sum_{i=1}^{N}$ works well, but it is not the baseline that results in the lowest variance estimator. To derive the best baseline, we can express that at its minimum, the derivative of the variance in function of the baseline is null.
+
+The variance of the gradient of the objective is, by definition:
+
+\begin{subequations}
+  \begin{align}
+    \operatorname{Var}
+      &=E\left[\left(\nabla_\theta J(\theta)\right)^{2}\right]-E[\nabla_\theta J(\theta)]^2\\
+      &=E_{\tau \sim \pi_{\theta}(\tau)}\left[\left(\nabla_{\theta} \log \pi_{\theta}(\tau)(r(\tau)-b)\right)^{2}\right]-\underbrace{E_{\tau \sim \pi_{\theta}(\tau)}\left[\nabla_{\theta} \log \pi_{\theta}(\tau)(r(\tau)-b)\right]^2}_{\small\llap{\textit{as shown in Eqs. \eqref{eq:proofunbiasedgrad}, this }}\rlap{\textit{term is independent of }b}}
+    \end{align}
+\end{subequations}
+
+As we observe that only the first term depends on $b$,
+
+\begin{subequations}
+  \begin{align}
+    \frac{d \mathrm{Var}}{d b}
+      &= \frac{d}{d b} E_{\tau \sim \pi_{\theta}(\tau)}\left[\left(\nabla_{\theta} \log \pi_{\theta}(\tau)(r(\tau)-b)\right)^{2}\right]\\
+      &=\frac{d}{d b} E\left[\left(\nabla_{\theta} \log \pi_{\theta}(\tau)\right)^{2}(r(\tau)-b)^{2}\right]\\
+      &=\frac{d}{d b} E\left[g(\tau)^{2}(r(\tau)-b)^{2}\right] \qquad\text{(we introduce }g(\tau)\doteq\nabla_{\theta} \log \pi_{\theta}(\tau)\text{)}\\
+      &=\frac{d}{d b}\left(E\left[g(\tau)^{2} r(\tau)^{2}\right]-2b E\left[g(\tau)^{2} r(\tau)\right]+b^{2} E\left[g(\tau)^{2}\right]\right)\\
+      &=\frac{d}{d b}\left(-2b E\left[g(\tau)^{2} r(\tau)\right]+b^{2} E\left[g(\tau)^{2}\right]\right)\\
+      &=-2 E\left[g(\tau)^{2} r(\tau)\right]+2 b E\left[g(\tau)^{2}\right]
+  \end{align}
+\end{subequations}
+
+We want to find $b$ s.t. $\frac{d \mathrm{Var}}{d b} = 0$:
+
+\begin{subequations}
+  \begin{align}
+    &\frac{d \mathrm{Var}}{d b} = 0 &\\
+    \implies & -2 E\left[g(\tau)^{2} r(\tau)\right]+2 b E\left[g(\tau)^{2}\right] = 0 &\\
+    \implies & b =\frac{E\left[g(\tau)^{2} r(\tau)\right]}{E\left[g(\tau)^{2}\right]} &
+  \end{align}
+\end{subequations}
+
+We have derived the baseline that minimizes the variance of the objective function:
+
+\begin{shaded}
+  \textbf{The optimal baseline}
+  \begin{equation}
+    \hat{b} =\frac{E\left[\left(\nabla_{\theta} \log \pi_{\theta}(\tau)\right)^{2} r(\tau)\right]}{E\left[\left(\nabla_{\theta} \log \pi_{\theta}(\tau)\right)^{2}\right]}
+  \end{equation}
+\end{shaded}
+
+This the expected reward weighted by the square of the gradient magnitude, \textbf{element-wise}: the baseline $\hat{b}$ is also defined per element of the vector of parameters, and the $g(\tau)^{2}$ is an element-wise square of the gradient vector. Each scalar in the gradient baseline vector is weighted by its contribution to the gradient.
+
+It is possible to implement $\hat{b}$, and it is guaranteed to be the optimal baseline w.r.t variance reduction. However, researchers often choose the simpler solution of the expected reward baseline, as it is easier to implement.
+
+\section{On-policy and off-policy algorithms}
 
 % References
 \small
