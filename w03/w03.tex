@@ -71,13 +71,13 @@ Given a state, what action are we going to take?
 
 \subsection{State}
 Action doesn't directly affect the policy. State is what is actually
-happening in the worl.  Based on what we can see from sensory input,
+happening in the world.  Based on what we can see from sensory input,
 we can take an action.  Tiger and the car(Observation wouldn't let us
 see it). we can't observe the tiger but our previous state allows us
 to know
 
 \subsection{Markov property}
-If I know the current state of the system I know whawt's the
+If I know the current state of the system I know what's the
 probability of getting to the next state. Particular state + what's
 the reward for taking an action.
 
@@ -114,9 +114,10 @@ At Initial time point it may be at a stable state. Hundred or thousand points ca
 - Set probability to zero everywhere except for the one region where it is 
 - High variance slow learning, need many samples to estimate the gradient( How do we reduce the variance)
 - History/Markovian property of state
-- Most of this cost(Probabilistic interpretation
+- Most of this cost(Probabilistic interpretation)
 - Sum of all the rewards over that particular trajectory
 - Expectation over all trajectories
+
 \section{The goal of reinforcement learning }
 We want to find  parameter theta* which maximizes the expectation under the trajectory of the distribution induced by theta of the total reward of the trajectory
 
@@ -145,13 +146,13 @@ If we choose to act on observations without knowing what states are then we get 
 
 
 \subsection{Finite Horizon MDP}
-- Finite horizon, take teh expectation outside and by linearity of expectation the thing inside the sum the reward only depends on the state and action that wtime step
+- Finite horizon, take the expectation outside and by linearity of expectation the thing inside the sum the reward only depends on the state and action that wtime step
 We have sum over time of the reward at a time step
 22:16 : State action marginal
 - In the infinite horizon case does p(st, at) converge to a stationary distribution? that is to say $\mu = T * \mu$
 and $(T- I) * \mu =0$
 
-We put a 1/T in front which is supposed to be okay because dividing by that constant doesn't change the optimum
+We put a $1/T$ in front which is supposed to be okay because dividing by that constant doesn't change the optimum
 
 In the infinite horizon case it's just the expected reward under the stationary distribution of the markov chain
 
@@ -184,7 +185,7 @@ if q $ policy(s,a) > valuepi_s$ then a is better than average
 - Actor-critic: estimate  value function or q-function of the current policy and use it to improve policy
 - Model-based RL: Estimate the transition model
 
-Model based rl
+Model based RL
 - Use the model to plan(no policy)
 - Monte Carlo Tree Search
 - Trajectory optimization/optimal control
@@ -212,13 +213,11 @@ Common assumptions in RL:
 \section{Policy Gradients Introduction}
 Define a distribution over trajectories by multiplying policy at all times step times the transition probabilities
 
-Maximizing J(Theta)
+We can convert this to integral form as in \includegraphics[scale=0.5]{integral_form}
 
-We can convert this to integral form as in 10:12
+Note the convenient identity at \includegraphics[scale=0.5]{convenient_identity}
 
-Note the convenient identity at 11:37
-
-Substituting into 12:12
+Substituting into \includegraphics[scale=0.25]{integral_substitution}
 
 Components in 15:25 are not affected by theta so we can cancel them out
 
