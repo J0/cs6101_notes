@@ -1,0 +1,90 @@
+\documentclass{article}
+
+\usepackage[final]{style}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{verbatim}
+\usepackage{graphicx}       % for figures
+
+% for box
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[breakable, theorems, skins]{tcolorbox}
+\tcbset{enhanced}
+
+\DeclareRobustCommand{\mybox}[2][gray!20]{%
+\begin{tcolorbox}[   %% Adjust the following parameters at will.
+        breakable,
+        left=0pt,
+        right=0pt,
+        top=0pt,
+        bottom=0pt,
+        colback=#1,
+        colframe=#1,
+        width=\dimexpr\textwidth\relax, 
+        enlarge left by=0mm,
+        boxsep=5pt,
+        arc=0pt,outer arc=0pt,
+        ]
+        #2
+\end{tcolorbox}
+}
+
+\title{Getting Started: Reinforcement Learning with OpenAI Gym and MuJoCo}
+
+\author{
+  Joash Lee\\
+  \texttt{\ leee0021@e.ntu.edu.sg} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Requirements}
+Use a Linux computer and Python 3.6. If you are running a GPU, make sure you install tensorflow-gpu. It is likely that you will need the Ubuntu drivers for your GPU instead of Nvidia's.
+\\
+\section{Install OpenAI Gym}
+\begin{enumerate}
+\item Install the dependencies listed in 'requirements.txt' on https://github.com/openai/gym
+\mybox{git clone https://github.com/openai/gym.git
+\\ cd gym
+\\ pip install -e [all]}
+\end{enumerate}
+
+\section{Install MuJoCo}
+\begin{enumerate}
+\item Download version 1.50 from http://mujoco.org/. Unzip the downloaded mujoco150 directory into ~/.mujoco/mujoco150
+
+\item MuJoCo has a free 1 year for students. Sign up at the following link, and they will send you an email with the license file. https://www.roboti.us/license.html
+
+\item When you have received the email from MuJoCo, copy the attached file 'mjkey.txt' to the sub-directory  ~/.mujoco/mujoco150/bin
+\end{enumerate}
+
+\section{Install mujoco-py}
+\begin{enumerate}
+\item Install the dependencies in 'requirements.txt' on the mujoco-py Github page. https://github.com/openai/mujoco-py
+\item Install version 1.50.1.56 of mujoco-py from https://github.com/openai/mujoco-py/
+\mybox{git clone https://github.com/openai/mujoco-py.git
+\\ cd mujoco-py
+\\ pip install --no-cache-dir -e .}
+\item Try the following test script.
+\mybox{import gym
+\\ env = gym.make('Ant-v2')
+\\ env.render()}
+
+\item I encountered a 'GLEW initialization error' when trying the code above. This thread on Github may help; look towards the bottom for a post by CrazyThinking. https://github.com/openai/mujoco-py/pull/145
+
+\end{enumerate}
+
+
+% References
+\small
+\bibliographystyle{plain}
+\bibliography{bibliography}
+\end{document}
